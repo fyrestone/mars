@@ -31,6 +31,7 @@ cdef class DirectedGraph:
         dict _successors
 
     def __init__(self):
+        print(f"[DEBUG][{type(self).__name__}.__init__][{self}]")
         self._nodes = dict()
         self._predecessors = dict()
         self._successors = dict()
@@ -51,6 +52,7 @@ cdef class DirectedGraph:
         return node in self._nodes
 
     def add_node(self, node, node_attr=None, **node_attrs):
+        print(f"[DEBUG][{type(self).__name__}.add_node][{self}] node: {node}, node_attr: {node_attr}")
         if node_attr is None:
             node_attr = node_attrs
         else:
@@ -73,6 +75,7 @@ cdef class DirectedGraph:
     def remove_node(self, node):
         if node not in self._nodes:
             raise KeyError(f'Node {node} does not exist in the directed graph')
+        print(f"[DEBUG][{type(self).__name__}.remove_node][{self}] node: {node}")
 
         del self._nodes[node]
 
@@ -85,6 +88,7 @@ cdef class DirectedGraph:
         del self._predecessors[node]
 
     def add_edge(self, u, v, edge_attr=None, **edge_attrs):
+        print(f"[DEBUG][{type(self).__name__}.add_edge][{self}] {u} --> {v}, edge_attr: {edge_attr}")
         if edge_attr is None:
             edge_attr = edge_attrs
         else:
@@ -118,6 +122,7 @@ cdef class DirectedGraph:
             v_pred[u] = edge_attr
 
     def remove_edge(self, u, v):
+        print(f"[DEBUG][{type(self).__name__}.remove_edge][{self}] {u} --> {v}")
         try:
             del self._successors[u][v]
             del self._predecessors[v][u]
@@ -440,14 +445,20 @@ cdef class DirectedGraph:
         return cls.deserialize(SerializableGraph.from_json(json_obj))
 
     def compose(self, list keys=None):
+        print(f"[DEBUG][{type(self).__name__}.compose][begin] keys: {keys}")
         from .optimizes.chunk_graph.fuse import Fusion
 
-        return Fusion(self).compose(keys=keys)
+        r = Fusion(self).compose(keys=keys)
+        print(f"[DEBUG][{type(self).__name__}.compose][end] keys: {keys}")
+        return r
 
     def decompose(self, nodes=None):
+        print(f"[DEBUG][{type(self).__name__}.decompose][begin] nodes: {nodes}")
         from .optimizes.chunk_graph.fuse import Fusion
 
-        Fusion(self).decompose(nodes=nodes)
+        r = Fusion(self).decompose(nodes=nodes)
+        print(f"[DEBUG][{type(self).__name__}.decompose][end] nodes: {nodes}")
+        return r
 
     def view(self, filename='default', graph_attrs=None, node_attrs=None, result_chunk_keys=None):  # pragma: no cover
         from graphviz import Source

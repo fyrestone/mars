@@ -68,6 +68,9 @@ cdef class ActorRef:
 
 
 cdef class Actor:
+    def __init__(self, *args, **kwargs):
+        print(f"[DEBUG] Construct actor {type(self).__name__}")
+
     @property
     def uid(self):
         return self._uid

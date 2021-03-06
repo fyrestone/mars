@@ -24,7 +24,7 @@ import ray
 from ..graph import DAG
 from ..operands import Fetch
 from ..tiles import get_tiled
-from ..utils import build_fetch_chunk
+from ..utils import build_fetch_chunk, debug_log_decorator
 from ..executor import Executor, GraphExecution
 
 
@@ -178,6 +178,7 @@ class RayExecutor(Executor):
     _graph_execution_cls = GraphExecutionForRay
 
     @classmethod
+    @debug_log_decorator
     def handle(cls, op, results, mock=False):
         method_name, mapper = ('execute', cls._op_runners) if not mock else \
             ('estimate_size', cls._op_size_estimators)
@@ -215,6 +216,7 @@ class RaySession:
 
     If Ray is not initialized, kwargs will pass to initialize Ray.
     """
+    @debug_log_decorator(enter_only=True)
     def __init__(self, **kwargs):
         # as we cannot serialize fuse chunk for now,
         # we just disable numexpr for ray executor
@@ -243,12 +245,14 @@ class RaySession:
     def fetch_log(self, tileables, offsets=None, sizes=None):  # pragma: no cover
         raise NotImplementedError('`fetch_log` is not implemented for ray executor')
 
+    @debug_log_decorator
     def run(self, *tileables, **kw):
         """
         Parallelism equals to Ray cluster CPUs.
         """
         if 'n_parallel' not in kw:  # pragma: no cover
-            kw['n_parallel'] = ray.cluster_resources()['CPU']
+            # kw['n_parallel'] = ray.cluster_resources()['CPU']
+            kw['n_parallel'] = 1  # For debug
         return self._executor.execute_tileables(tileables, **kw)
 
     def _update_tileable_shape(self, tileable):

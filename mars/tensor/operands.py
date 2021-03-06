@@ -15,7 +15,7 @@
 from ..serialize import DataTypeField
 from ..operands import Operand, TileableOperandMixin, HasInput, ShuffleProxy, MapReduceOperand, \
     Fuse, OutputType
-from ..utils import calc_nsplits
+from ..utils import calc_nsplits, debug_log_decorator
 
 
 class TensorOperandMixin(TileableOperandMixin):
@@ -23,6 +23,7 @@ class TensorOperandMixin(TileableOperandMixin):
     _op_module_ = 'tensor'
     _output_type_ = OutputType.tensor
 
+    @debug_log_decorator(enter_only=True)
     def new_tensors(self, inputs, shape=None, dtype=None, order=None, chunks=None, nsplits=None,
                     output_limit=None, kws=None, **kw):
         return self.new_tileables(inputs, shape=shape, chunks=chunks, nsplits=nsplits,

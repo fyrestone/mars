@@ -30,7 +30,7 @@ from .serialize import SerializableMetaclass, ValueType, ProviderType, IdentityF
     ReferenceField
 from .tiles import NotSupportTile
 from .utils import AttributeDict, to_str, calc_data_size, calc_object_overhead, \
-    enter_mode, is_eager_mode
+    enter_mode, is_eager_mode, debug_log, debug_log_decorator
 
 
 operand_type_to_oprand_cls = {}
@@ -41,6 +41,8 @@ T = TypeVar('T')
 
 
 class OperandMetaclass(SerializableMetaclass):
+    stack = []
+
     def __new__(mcs, name, bases, kv):
         if '__call__' in kv:
             # if __call__ is specified for an operand,
@@ -48,6 +50,7 @@ class OperandMetaclass(SerializableMetaclass):
             kv['__call__'] = enter_mode(kernel=False)(kv['__call__'])
 
         cls = super().__new__(mcs, name, bases, kv)
+        debug_log(cls, "tile", "[OP]", stack=mcs.stack)
 
         for base in bases:
             if OP_TYPE_KEY not in kv and hasattr(base, OP_TYPE_KEY):
@@ -118,6 +121,7 @@ class Operand(AttributeAsDictKey, metaclass=OperandMetaclass):
             cls = operand_type_to_oprand_cls[module, int(tp)]
         return object.__new__(cls)
 
+    @debug_log_decorator(tag="[OP]", enter_only=True)
     def __init__(self, *args, **kwargs):
         extras = AttributeDict((k, kwargs.pop(k)) for k in set(kwargs) - set(self.__slots__))
         kwargs['_extra_params'] = kwargs.pop('_extra_params', extras)
@@ -303,6 +307,7 @@ class TileableOperandMixin(object):
             elif all(inp.op.gpu is False for inp in inputs):
                 return False
 
+    @debug_log_decorator(enter_only=True)
     def _create_chunk(self, output_idx, index, **kw):
         output_type = kw.pop('output_type', self._get_output_type(output_idx))
         if not output_type:
@@ -389,6 +394,7 @@ class TileableOperandMixin(object):
             kw['nsplits'] = nsplits
         return kw
 
+    @debug_log_decorator(enter_only=True)
     def _create_tileable(self, output_idx, **kw):
         output_type = kw.pop('output_type', self._get_output_type(output_idx))
         if output_type is None:

@@ -146,7 +146,8 @@ if os.path.exists(build_protos_cmd):
             pass
 
         def run(self):
-            subprocess.check_call([sys.executable, build_protos_cmd, repo_root], env=os.environ.copy())
+            pass
+            # subprocess.check_call([sys.executable, build_protos_cmd, repo_root], env=os.environ.copy())
 
 
     class CustomBuildPy(build_py):

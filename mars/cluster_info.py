@@ -22,7 +22,7 @@ from . import kvstore
 from .actors import FunctionActor
 from .promise import PromiseActor
 from .lib.uhashring import HashRing
-from .utils import to_str
+from .utils import to_str, debug_log_decorator
 
 
 SCHEDULER_PATH = '/schedulers'
@@ -30,6 +30,7 @@ INITIAL_SCHEDULER_FILE = '/tmp/mars-initial-schedulers.tmp'
 logger = logging.getLogger(__name__)
 
 
+@debug_log_decorator(enter_only=True)
 def create_hash_ring(schedulers):
     return HashRing(nodes=schedulers, hash_fn='ketama')
 

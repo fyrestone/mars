@@ -90,6 +90,9 @@ def _install():
         ('_reduction_size', size_dataframe, size_series),
     ]
     for func_name, series_func, df_func in funcs:
+        print(f"[DEBUG] Install method for "
+              f"{[t.__name__ for t in DATAFRAME_TYPE]} and {[t.__name__ for t in SERIES_TYPE]}, "
+              f"func_name: {func_name}, series_func: {series_func}, df_func: {df_func}")
         if df_func is not None:  # pragma: no branch
             for t in DATAFRAME_TYPE:
                 setattr(t, func_name, df_func)

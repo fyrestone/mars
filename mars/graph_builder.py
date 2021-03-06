@@ -17,10 +17,10 @@
 import itertools
 
 from .graph import DAG
-from .utils import enter_mode
+from .utils import enter_mode, DebugGraphBuilderMetaclass
 
 
-class GraphBuilder(object):
+class GraphBuilder(object, metaclass=DebugGraphBuilderMetaclass):
     def __init__(self, graph=None, graph_cls=DAG, node_processor=None,
                  inputs_selector=None):
         self._graph_cls = graph_cls

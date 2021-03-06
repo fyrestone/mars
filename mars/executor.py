@@ -35,7 +35,7 @@ from .optimizes.runtime.core import RuntimeOptimizer
 from .optimizes.tileable_graph import tileable_optimized, OptimizeIntegratedTileableGraphBuilder
 from .graph_builder import TileableGraphBuilder
 from .context import LocalContext
-from .utils import enter_mode, build_fetch, calc_nsplits, has_unknown_shape, prune_chunk_graph
+from .utils import enter_mode, build_fetch, calc_nsplits, has_unknown_shape, prune_chunk_graph, debug_log_decorator
 
 try:
     from numpy.core._exceptions import UFuncTypeError
@@ -598,6 +598,7 @@ class Executor(object):
         SyncProviderType.GEVENT: GeventExecutorSyncProvider,
     }
 
+    @debug_log_decorator(enter_only=True)
     def __init__(self, engine=None, storage=None, prefetch=False,
                  sync_provider_type=SyncProviderType.THREAD):
         self._engine = engine
@@ -657,6 +658,7 @@ class Executor(object):
                     return runner(results, op)
             raise KeyError(f'No handler found for op: {op}')
 
+    @debug_log_decorator
     def execute_graph(self, graph, keys, n_parallel=None, print_progress=False,
                       mock=False, no_intermediate=False, compose=True, retval=True,
                       chunk_result=None):
@@ -702,6 +704,7 @@ class Executor(object):
         return res
 
     @enter_mode(build=True, kernel=True)
+    @debug_log_decorator
     def execute_tileable(self, tileable, n_parallel=None, n_thread=None, concat=False,
                          print_progress=False, mock=False, compose=True):
         result_keys = []
@@ -765,6 +768,7 @@ class Executor(object):
             yield chunk_result
 
     @enter_mode(build=True, kernel=True)
+    @debug_log_decorator
     def execute_tileables(self, tileables, fetch=True, n_parallel=None, n_thread=None,
                           print_progress=False, mock=False, compose=True, name=None):
         # shallow copy chunk_result, prevent from any chunk key decref

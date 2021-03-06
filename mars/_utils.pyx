@@ -90,6 +90,7 @@ cdef class TypeDispatcher:
         self._lazy_handlers = dict()
 
     cpdef void register(self, object type_, object handler):
+        print(f"[DEBUG][TypeDispatcher.register] type: {type_}, handler: {handler}")
         if isinstance(type_, str):
             self._lazy_handlers[type_] = handler
         else:

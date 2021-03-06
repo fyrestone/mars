@@ -1272,3 +1272,83 @@ def extensible(implemented):
         return ExtensibleAccessor(func, implemented)
 
     return deco_fun
+
+
+class DebugLogStack:
+    def __init__(self, stack, key):
+        self._stack = stack
+        self._key = key
+
+    def __enter__(self):
+        if self._stack is not None:
+            self._stack.append(self._key)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._stack is not None:
+            key = self._stack.pop()
+            assert key == self._key
+
+    def duplicated(self):
+        if self._stack:
+            return self._key == self._stack[-1]
+        return False
+
+
+def debug_log_decorator(*m, tag="", enter_only=False, stack=None, cls=None):
+
+    def _wrapper(method):
+        sig = inspect.signature(method)
+
+        def _debug_log_wrapper(*args, **kwargs):
+            ba = sig.bind(*args, **kwargs)
+            ba.apply_defaults()
+            arguments = ba.arguments
+            self = arguments.pop("self", None)
+            nonlocal cls
+            if cls is None:
+                cls = type(self) if self is not None else arguments.pop("cls", None)
+
+            s = DebugLogStack(stack, (self, method.__name__))
+            if s.duplicated():
+                # Skip the print when recursive call or super call.
+                return method(*args, **kwargs)
+            else:
+                with s:
+                    cls_prefix = f"{cls.__name__}." if cls is not None else ""
+                    arguments = dict(arguments)
+                    if enter_only:
+                        print(f"[DEBUG]{tag}[{cls_prefix}{method.__name__}] {arguments}")
+                    else:
+                        print(f"[DEBUG]{tag}[{cls_prefix}{method.__name__}][begin] {arguments}")
+                    r = method(*args, **kwargs)
+                    if not enter_only:
+                        print(f"[DEBUG]{tag}[{cls_prefix}{method.__name__}][end] {arguments}")
+                    return r
+
+        return _debug_log_wrapper
+
+    if len(m) == 0:
+        return _wrapper
+    else:
+        return _wrapper(m[0])
+
+
+def debug_log(cls, method_name, tag="", enter_only=False, stack=None):
+    method = getattr(cls, method_name, None)
+    if method is not None:
+        decorated_method = debug_log_decorator(
+            method,
+            tag=tag,
+            enter_only=enter_only,
+            stack=stack,
+            cls=cls)
+        setattr(cls, method_name, decorated_method)
+
+
+class DebugGraphBuilderMetaclass(type):
+    stack = []
+
+    def __new__(mcs, name, bases, kv):
+        cls = super().__new__(mcs, name, bases, kv)
+        debug_log(cls, "build", stack=mcs.stack)
+        return cls

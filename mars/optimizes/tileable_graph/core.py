@@ -132,4 +132,5 @@ class OptimizeIntegratedTileableGraphBuilder(TileableGraphBuilder):
 
 
 def register(op_type, rule):
+    print(f"[DEBUG] Register TileableOptimizeRule, op_type: {op_type}, rule: {rule}")
     _rules[op_type].append(rule)

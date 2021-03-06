@@ -29,7 +29,7 @@ from .serialize import HasKey, HasData, ValueType, ProviderType, Serializable, A
     TupleField, ListField, DictField, KeyField, BoolField, StringField
 from .tiles import Tileable, handler
 from .utils import tokenize, AttributeDict, on_serialize_shape, \
-    on_deserialize_shape, on_serialize_nsplits, enter_mode, is_build_mode
+    on_deserialize_shape, on_serialize_nsplits, enter_mode, is_build_mode, debug_log_decorator
 
 
 class Base(HasKey):
@@ -355,6 +355,7 @@ FUSE_CHUNK_TYPE = (FuseChunkData, FuseChunk)
 class _ExecutableMixin:
     __slots__ = ()
 
+    @debug_log_decorator(enter_only=True)
     def execute(self, session=None, **kw):
         from .session import Session
 
@@ -909,11 +910,13 @@ _OUTPUT_TYPE_TO_TILEABLE_TYPES = {OutputType.object: OBJECT_TYPE}
 _OUTPUT_TYPE_TO_FETCH_CLS = {}
 
 
+@debug_log_decorator(enter_only=True)
 def register_output_types(output_type, tileable_types, chunk_types):
     _OUTPUT_TYPE_TO_TILEABLE_TYPES[output_type] = tileable_types
     _OUTPUT_TYPE_TO_CHUNK_TYPES[output_type] = chunk_types
 
 
+@debug_log_decorator(enter_only=True)
 def register_fetch_class(output_type, fetch_cls, fetch_shuffle_cls):
     _OUTPUT_TYPE_TO_FETCH_CLS[output_type] = (fetch_cls, fetch_shuffle_cls)
 
